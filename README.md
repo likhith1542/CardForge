@@ -1,158 +1,214 @@
-# CardForge — AI Flashcard Generator
+<div align="center">
 
-Turn your study documents (PDF, DOCX, TXT) into AI-generated flashcards with a single click. Supports both cloud AI (Anthropic Claude) and local AI (Ollama) for extended question generation.
+# ⬡ CardForge
+
+**AI-powered flashcard generator from your documents**
+
+Turn PDFs, Word docs, and text files into study-ready flashcards in seconds.  
+Powered by Anthropic Claude (cloud) or Ollama (local, private).
+
+[![Python](https://img.shields.io/badge/Python-3.9+-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://typescriptlang.org)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
+
+</div>
 
 ---
 
 ## Features
 
-- **Multi-document upload** — drag & drop PDF, DOCX, TXT files
-- **Smart flashcard generation** — question, answer, topic label, difficulty tag
-- **Difficulty modes** — Easy, Medium, Hard
-- **Local AI extension** — toggle Ollama to add inference, application, and critical-thinking questions beyond the document scope
-- **Study Mode** — spaced-repetition style "Got It / Review Again" session with score summary
-- **Grid & List views** — browse all cards, filter by Core vs Extended
-- **3D flip animation** — tap any card to reveal the answer
+- **Multi-document upload** — drag & drop multiple PDF, DOCX, or TXT files at once; content is combined and analysed together
+- **Dual AI modes** — use Anthropic Claude for cloud generation, or switch to Ollama for fully local, private inference
+- **Extended question scope** — when Local AI is enabled, Ollama generates additional inference, application, and critical-thinking questions that go *beyond* the document text
+- **Difficulty levels** — Easy (recall & definitions), Medium (understanding & relationships), Hard (analysis & synthesis)
+- **3D flip cards** — smooth CSS perspective flip animation; tap any card to reveal the answer
+- **Study Mode** — fullscreen spaced-repetition session with "Got It / Review Again" scoring and a results summary
+- **Grid & List views** — browse cards in either layout; filter between Core and Extended cards
+- **Clean dark UI** — editorial aesthetic with Playfair Display serif headings and DM Mono accents
 
 ---
 
-## Stack
+## Tech Stack
 
-| Layer | Tech |
-|-------|------|
-| Frontend | React + TypeScript |
-| Backend | FastAPI (Python) |
-| Cloud AI | Anthropic Claude (claude-opus-4-5) |
-| Local AI | Ollama (llama3 or any model) |
+| Layer | Technology |
+|---|---|
+| Frontend | React 18, TypeScript, CSS (no UI library) |
+| Backend | Python 3.9+, FastAPI, Uvicorn |
+| Cloud AI | Anthropic Claude (`claude-opus-4-5`) |
+| Local AI | Ollama (`llama3`, `mistral`, or any model) |
 | PDF parsing | pdfplumber |
 | DOCX parsing | python-docx |
+| HTTP client | httpx (async) |
+| Containerisation | Docker + Docker Compose |
 
 ---
 
-## Quick Start (Local Dev)
+## Getting Started
 
-### 1. Backend
+### Prerequisites
+
+- Node.js 18+
+- Python 3.9+
+- An [Anthropic API key](https://console.anthropic.com/) — for cloud mode
+- [Ollama](https://ollama.ai) installed and running — for local mode
+
+---
+
+### Option A — Run locally (dev)
+
+#### 1. Clone the repo
+
+```bash
+git clone https://github.com/likhith1542/cardforge.git
+cd cardforge
+```
+
+#### 2. Start the backend
 
 ```bash
 cd backend
 
-# Create virtual environment
+# Create and activate a virtual environment
 python -m venv venv
-source venv/bin/activate   # Windows: venv\Scripts\activate
+source venv/bin/activate        # Windows: venv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
 
 # Set your Anthropic API key
-export ANTHROPIC_API_KEY=sk-ant-...
+export ANTHROPIC_API_KEY=sk-ant-...   # Windows: set ANTHROPIC_API_KEY=sk-ant-...
 
 # Start the server
 uvicorn main:app --reload --port 8000
 ```
 
-Backend runs at: http://localhost:8000
-API docs at: http://localhost:8000/docs
+Backend available at `http://localhost:8000`  
+Interactive API docs at `http://localhost:8000/docs`
 
-### 2. Frontend
+#### 3. Start the frontend
 
 ```bash
+# In a new terminal, from the project root
 cd frontend
 npm install
 npm start
 ```
 
-Frontend runs at: http://localhost:3000
+Frontend available at `http://localhost:3000`
 
 ---
 
-## Docker Compose (Recommended for Production)
+### Option B — Docker Compose
 
 ```bash
-# Set env variable
+# From the project root
 export ANTHROPIC_API_KEY=sk-ant-...
 
-# Build and run
 docker-compose up --build
 ```
 
-- Frontend: http://localhost:3000
-- Backend: http://localhost:8000
+| Service | URL |
+|---|---|
+| Frontend | http://localhost:3000 |
+| Backend API | http://localhost:8000 |
+| API Docs | http://localhost:8000/docs |
 
 ---
 
-## Local AI (Ollama) Setup
+### Local AI Setup (Ollama)
 
-To enable extended question scope:
+To use Local AI mode with extended question generation:
 
-1. Install Ollama: https://ollama.ai
-2. Pull a model:
-   ```bash
-   ollama pull llama3
-   # or: ollama pull mistral, phi3, gemma, etc.
-   ```
-3. Start Ollama:
-   ```bash
-   ollama serve
-   ```
-4. Toggle "Extend with Local AI" in the app and enter your model name
+```bash
+# 1. Install Ollama — https://ollama.ai
 
-Ollama runs at http://localhost:11434 by default.
+# 2. Pull a model
+ollama pull llama3        # recommended — fast, well-rounded
+ollama pull mistral       # great for reasoning tasks
+ollama pull phi3          # lightweight, runs on modest hardware
+ollama pull gemma         # Google's open model
 
----
-
-## API Reference
-
-### POST /generate-flashcards
-
-**Form fields:**
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| files | File[] | required | PDF/DOCX/TXT files |
-| num_cards | int | 10 | Number of flashcards (5–30) |
-| difficulty | string | medium | easy / medium / hard |
-| use_local_ai | bool | false | Enable Ollama extension |
-| ollama_model | string | llama3 | Ollama model name |
-
-**Response:**
-```json
-{
-  "flashcards": [
-    {
-      "id": 1,
-      "question": "What is photosynthesis?",
-      "answer": "The process by which plants convert sunlight...",
-      "topic": "Biology",
-      "difficulty": "easy",
-      "type": "core"
-    }
-  ],
-  "total": 10,
-  "documents": [{"name": "bio.pdf", "chars": 4200}],
-  "mode": "cloud_ai",
-  "difficulty": "easy"
-}
+# 3. Start the server
+ollama serve
 ```
 
-### GET /ollama-models
+Toggle **"Extend with Local AI"** in the app and type your model name. The status dot turns green when Ollama is detected.
 
-Returns `{ available: bool, models: string[] }`
+> **Tip:** The model name must match `ollama list` output (e.g. `llama3`). Tag suffixes like `:latest` are handled automatically.
 
 ---
 
 ## Project Structure
 
 ```
-flashcard-app/
+cardforge/
 ├── backend/
-│   ├── main.py           # FastAPI app + all routes
-│   ├── requirements.txt
+│   ├── main.py               # FastAPI app — parsing, AI routing, all endpoints
+│   ├── requirements.txt      # Python dependencies
 │   └── Dockerfile
 ├── frontend/
+│   ├── public/
+│   │   └── index.html
 │   ├── src/
-│   │   ├── App.tsx       # Full React app (components + logic)
-│   │   └── index.css     # Dark editorial design system
+│   │   ├── App.tsx           # Full React app — all components and state
+│   │   └── index.css         # Design system — tokens, layout, animations
+│   ├── package.json
 │   └── Dockerfile
-└── docker-compose.yml
+├── docker-compose.yml
+└── README.md
+```
+
+---
+
+## API Reference
+
+### `POST /generate-flashcards`
+
+Accepts a `multipart/form-data` upload. Returns generated flashcards.
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `files` | `File[]` | required | One or more PDF / DOCX / TXT files |
+| `num_cards` | `int` | `10` | Number of flashcards to generate (5–30) |
+| `difficulty` | `string` | `medium` | `easy` · `medium` · `hard` |
+| `use_local_ai` | `bool` | `true` | Route to Ollama instead of Claude |
+| `ollama_model` | `string` | `llama3` | Model name as shown in `ollama list` |
+
+**Response**
+
+```jsonc
+{
+  "flashcards": [
+    {
+      "id": 1,
+      "question": "What is a binary search tree?",
+      "answer": "A BST is a binary tree where every left child node is smaller...",
+      "topic": "Data Structures",
+      "difficulty": "medium",
+      "type": "core"       // "extended" for Ollama inference questions
+    }
+  ],
+  "total": 10,
+  "documents": [{ "name": "lecture.pdf", "chars": 8240 }],
+  "mode": "local_ai",     // or "cloud_ai"
+  "difficulty": "medium"
+}
+```
+
+### `GET /ollama-models`
+
+Returns availability and list of locally pulled Ollama models.
+
+```jsonc
+{ "available": true, "models": ["llama3", "mistral"] }
+```
+
+### `GET /health`
+
+```jsonc
+{ "status": "ok" }
 ```
 
 ---
@@ -160,14 +216,36 @@ flashcard-app/
 ## Environment Variables
 
 | Variable | Required | Description |
-|----------|----------|-------------|
-| ANTHROPIC_API_KEY | Yes | Your Anthropic API key |
+|---|---|---|
+| `ANTHROPIC_API_KEY` | Yes (cloud mode) | Get one at [console.anthropic.com](https://console.anthropic.com) |
 
 ---
 
-## Customization
+## Configuration
 
-- **Max document length**: Edit the `text[:12000]` slice in `build_prompt()` to increase context
-- **Card count limits**: Adjust `min/max` in the settings panel (`App.tsx`)
-- **Ollama host**: Change `http://localhost:11434` in `main.py` if Ollama is remote
-- **Model**: Default is `claude-opus-4-5`; edit in `generate_with_anthropic()`
+| Setting | File | Key | Default |
+|---|---|---|---|
+| Max document context | `backend/main.py` | `text[:12000]` | 12,000 chars |
+| Card count range | `frontend/src/App.tsx` | `num-btn` handlers | 5 – 30 |
+| Claude model | `backend/main.py` | `generate_with_anthropic` | `claude-opus-4-5` |
+| Default Ollama model | `backend/main.py` | `generate_with_ollama` | `llama3` |
+| Ollama host | `backend/main.py` | hardcoded URL | `localhost:11434` |
+| Request timeout | `backend/main.py` | `AsyncClient(timeout=…)` | 180s |
+
+---
+
+## Contributing
+
+Pull requests are welcome. For major changes, please open an issue first.
+
+1. Fork the repo
+2. Create your feature branch — `git checkout -b feat/your-feature`
+3. Commit your changes — `git commit -m 'feat: add your feature'`
+4. Push to the branch — `git push origin feat/your-feature`
+5. Open a Pull Request
+
+---
+
+## License
+
+[MIT](LICENSE) © 2025 [Likhith](https://github.com/likhith1542)
